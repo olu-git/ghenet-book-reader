@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Book Reader</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg-secondary: #f5f5f4;
+      --bg-tertiary: #eeece9;
+      --text: #1a1a18;
+      --text-secondary: #6b6b68;
+      --text-tertiary: #9b9b98;
+      --border: rgba(0,0,0,0.12);
+      --border-secondary: rgba(0,0,0,0.22);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --accent: #185fa5;
+      --accent-bg: #e6f1fb;
+      --accent-text: #0c447c;
+      --success-bg: #eaf3de;
+      --success-text: #3b6d11;
+      --warning-bg: #faeeda;
+      --warning-text: #854f0b;
+      --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1e1e1c;
+        --bg-secondary: #2a2a28;
+        --bg-tertiary: #323230;
+        --text: #f0ede8;
+        --text-secondary: #a0a09c;
+        --text-tertiary: #6b6b68;
+        --border: rgba(255,255,255,0.1);
+        --border-secondary: rgba(255,255,255,0.18);
+        --accent: #378add;
+        --accent-bg: #0c2a45;
+        --accent-text: #85b7eb;
+        --success-bg: #173404;
+        --success-text: #97c459;
+        --warning-bg: #412402;
+        --warning-text: #ef9f27;
+      }
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-tertiary);
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: var(--text);
+    }
+
+    #app {
+      width: 100%;
+      max-width: 620px;
+    }
+
+    header {
+      margin-bottom: 1.5rem;
+    }
+
+    header h1 {
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header h1 i { font-size: 22px; color: var(--accent); }
+    header p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
+
+    #drop-zone {
+      border: 1.5px dashed var(--border-secondary);
+      border-radius: var(--radius-lg);
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+      background: var(--bg);
+      margin-bottom: 1.5rem;
+    }
+
+    #drop-zone:hover, #drop-zone.drag {
+      background: var(--bg-secondary);
+      border-color: var(--accent);
+    }
+
+    #drop-zone i { font-size: 36px; color: var(--text-secondary); display: block; margin-bottom: 0.75rem; }
+    #drop-zone p { color: var(--text); font-size: 15px; font-weight: 500; margin-bottom: 4px; }
+    #drop-zone span { font-size: 13px; color: var(--text-tertiary); }
+    #file-input { display: none; }
+
+    #reader { display: none; }
+
+    .card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+
+    .book-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1.25rem;
+    }
+
+    .book-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: var(--radius-md);
+      background: var(--accent-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .book-icon i { font-size: 22px; color: var(--accent-text); }
+    .book-meta-text { flex: 1; min-width: 0; }
+    .book-name { font-size: 15px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .book-pages { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+    .reset-btn {
+      font-size: 13px;
+      color: var(--text-secondary);
+      background: none;
+      border: 0.5px solid var(--border);
+      cursor: pointer;
+      padding: 6px 10px;
+      border-radius: var(--radius-md);
+      font-family: var(--font);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .reset-btn:hover { background: var(--bg-secondary); }
+
+    .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
+    .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 0.4s; }
+    .progress-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: 1rem; }
+
+    .text-preview {
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--text-secondary);
+      max-height: 140px;
+      overflow-y: auto;
+      padding: 0.875rem 1rem;
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border);
+      margin-bottom: 1rem;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 0.875rem;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .status-pill.playing { background: var(--success-bg); color: var(--success-text); }
+    .status-pill.paused  { background: var(--warning-bg); color: var(--warning-text); }
+    .status-pill.idle    { background: var(--bg-secondary); color: var(--text-secondary); }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border: 0.5px solid var(--border-secondary);
+      border-radius: var(--radius-md);
+      background: transparent;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--text);
+      font-family: var(--font);
+      transition: background 0.1s, transform 0.1s;
+    }
+
+    .btn:hover { background: var(--bg-secondary); }
+    .btn:active { transform: scale(0.97); }
+
+    .btn.primary {
+      background: var(--text);
+      color: var(--bg);
+      border-color: transparent;
+      font-weight: 500;
+    }
+
+    .btn.primary:hover { opacity: 0.85; }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 0.625rem;
+    }
+
+    .slider-row label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      min-width: 44px;
+    }
+
+    .slider-row input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+    .slider-row .val { font-size: 13px; font-weight: 500; min-width: 36px; text-align: right; color: var(--text); }
+
+    select {
+      flex: 1;
+      border: 0.5px solid var(--border-secondary);
+      border-radius: var(--radius-md);
+      padding: 6px 10px;
+      font-size: 13px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      cursor: pointer;
+    }
+
+    #loading-msg {
+      display: none;
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-secondary);
+      font-size: 14px;
+      background: var(--bg);
+      border-radius: var(--radius-lg);
+      border: 0.5px solid var(--border);
+      margin-bottom: 1rem;
+    }
+
+    #loading-msg i { font-size: 28px; display: block; margin-bottom: 8px; color: var(--accent); }
+  </style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1><i class="ti ti-headphones" aria-hidden="true"></i> Book Reader</h1>
+    <p>Upload a PDF or text file and have it read aloud — free, no sign-up</p>
+  </header>
+
+  <div id="drop-zone" onclick="document.getElementById('file-input').click()" role="button" tabindex="0" aria-label="Upload a PDF or text file">
+    <i class="ti ti-cloud-upload" aria-hidden="true"></i>
+    <p>Drop a PDF or .txt file here</p>
+    <span>Or click to browse your device</span>
+    <input type="file" id="file-input" accept=".pdf,.txt">
+  </div>
+
+  <div id="loading-msg">
+    <i class="ti ti-loader ti-spin" aria-hidden="true"></i>
+    Extracting text — hang on a moment…
+  </div>
+
+  <div id="reader">
+    <div class="card">
+      <div class="book-meta">
+        <div class="book-icon"><i class="ti ti-book" aria-hidden="true"></i></div>
+        <div class="book-meta-text">
+          <div class="book-name" id="book-name">—</div>
+          <div class="book-pages" id="book-pages">—</div>
+        </div>
+        <button class="reset-btn" onclick="resetReader()"><i class="ti ti-refresh" aria-hidden="true"></i> New book</button>
+      </div>
+
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
+      <div class="progress-label" id="prog-label">0% read</div>
+
+      <div class="text-preview" id="preview-text"></div>
+
+      <div class="status-row">
+        <span class="status-pill idle" id="status-pill">
+          <i class="ti ti-circle" aria-hidden="true"></i>
+          <span id="status-txt">Ready</span>
+        </span>
+      </div>
+
+      <div class="controls">
+        <button class="btn primary" id="play-btn" onclick="togglePlay()">
+          <i class="ti ti-player-play" id="play-icon" aria-hidden="true"></i>
+          <span id="play-label">Play</span>
+        </button>
+        <button class="btn" onclick="stopReading()"><i class="ti ti-player-stop" aria-hidden="true"></i> Stop</button>
+        <button class="btn" onclick="skipBack()"><i class="ti ti-rewind" aria-hidden="true"></i> −30s</button>
+        <button class="btn" onclick="skipForward()"><i class="ti ti-fast-forward" aria-hidden="true"></i> +30s</button>
+      </div>
+
+      <div class="slider-row">
+        <label for="speed">Speed</label>
+        <input type="range" id="speed" min="0.5" max="2" step="0.1" value="1" oninput="updateSpeed(this.value)">
+        <span class="val" id="speed-out">1.0×</span>
+      </div>
+
+      <div class="slider-row">
+        <label for="voice-select">Voice</label>
+        <select id="voice-select" onchange="updateVoice()"></select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  let sentences = [];
+  let currentIdx = 0;
+  let isPlaying = false;
+  let voices = [];
+  let selectedVoice = null;
+
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag'); handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+  dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+
+  function loadVoices() {
+    voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+    const sel = document.getElementById('voice-select');
+    sel.innerHTML = '';
+    voices.forEach((v, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = v.name + (v.localService ? '' : ' ☁');
+      sel.appendChild(opt);
+    });
+    const pref = voices.findIndex(v =>
+      ['samantha','karen','zira','female','victoria','fiona'].some(k => v.name.toLowerCase().includes(k))
+    );
+    if (pref >= 0) sel.value = pref;
+    selectedVoice = voices[sel.value] || voices[0];
+  }
+
+  speechSynthesis.onvoiceschanged = loadVoices;
+  loadVoices();
+
+  async function handleFile(file) {
+    if (!file) return;
+    showLoading(true);
+    const name = file.name;
+    document.getElementById('book-name').textContent = name.replace(/\.[^.]+$/, '');
+
+    try {
+      if (file.type === 'text/plain' || name.endsWith('.txt')) {
+        const text = await file.text();
+        processText(text, 1);
+      } else {
+        const buf = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+        const numPages = pdf.numPages;
+        let text = '';
+        for (let i = 1; i <= numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          text += content.items.map(s => s.str).join(' ') + '\n';
+        }
+        processText(text, numPages);
+      }
+    } catch (err) {
+      showLoading(false);
+      alert('Could not read that file. Try a different PDF or a .txt file.');
+      console.error(err);
+    }
+  }
+
+  function processText(text, pages) {
+    const clean = text.replace(/\s+/g, ' ').trim();
+    sentences = clean.match(/[^.!?]+[.!?]+[\s]*/g) || [clean];
+    sentences = sentences.filter(s => s.trim().length > 3);
+    currentIdx = 0;
+    document.getElementById('book-pages').textContent =
+      `${pages} page${pages > 1 ? 's' : ''} · ${sentences.length} sentences`;
+    document.getElementById('preview-text').textContent =
+      clean.slice(0, 1500) + (clean.length > 1500 ? '…' : '');
+    showLoading(false);
+    document.getElementById('reader').style.display = 'block';
+    updateProgress();
+  }
+
+  function showLoading(show) {
+    document.getElementById('loading-msg').style.display = show ? 'block' : 'none';
+    document.getElementById('drop-zone').style.display = show ? 'none' : (document.getElementById('reader').style.display === 'block' ? 'none' : 'block');
+  }
+
+  function setStatus(state) {
+    const pill = document.getElementById('status-pill');
+    const txt = document.getElementById('status-txt');
+    const icon = document.getElementById('play-icon');
+    const label = document.getElementById('play-label');
+    pill.className = 'status-pill ' + state;
+    if (state === 'playing') {
+      txt.textContent = 'Reading…'; icon.className = 'ti ti-player-pause'; label.textContent = 'Pause';
+    } else if (state === 'paused') {
+      txt.textContent = 'Paused'; icon.className = 'ti ti-player-play'; label.textContent = 'Resume';
+    } else {
+      txt.textContent = 'Ready'; icon.className = 'ti ti-player-play'; label.textContent = 'Play';
+    }
+  }
+
+  function updateProgress() {
+    const pct = sentences.length ? Math.round((currentIdx / sentences.length) * 100) : 0;
+    document.getElementById('prog-fill').style.width = pct + '%';
+    document.getElementById('prog-label').textContent =
+      `${pct}% read — sentence ${currentIdx} of ${sentences.length}`;
+  }
+
+  function speakFrom(idx) {
+    speechSynthesis.cancel();
+    if (idx >= sentences.length) { isPlaying = false; setStatus('idle'); return; }
+    currentIdx = idx;
+    updateProgress();
+    const chunk = sentences.slice(idx, idx + 5).join(' ');
+    const u = new SpeechSynthesisUtterance(chunk);
+    u.voice = selectedVoice;
+    u.rate = parseFloat(document.getElementById('speed').value);
+    u.onend = () => {
+      currentIdx = Math.min(idx + 5, sentences.length);
+      if (isPlaying) speakFrom(currentIdx);
+    };
+    u.onerror = () => { isPlaying = false; setStatus('idle'); };
+    speechSynthesis.speak(u);
+    setStatus('playing');
+  }
+
+  function togglePlay() {
+    if (isPlaying) {
+      speechSynthesis.pause();
+      isPlaying = false;
+      setStatus('paused');
+    } else {
+      if (speechSynthesis.paused) {
+        speechSynthesis.resume();
+        isPlaying = true;
+        setStatus('playing');
+      } else {
+        isPlaying = true;
+        speakFrom(currentIdx);
+      }
+    }
+  }
+
+  function stopReading() {
+    speechSynthesis.cancel();
+    isPlaying = false;
+    currentIdx = 0;
+    setStatus('idle');
+    updateProgress();
+  }
+
+  function skipBack() {
+    const was = isPlaying;
+    speechSynthesis.cancel();
+    currentIdx = Math.max(0, currentIdx - 15);
+    if (was) { isPlaying = true; speakFrom(currentIdx); } else updateProgress();
+  }
+
+  function skipForward() {
+    const was = isPlaying;
+    speechSynthesis.cancel();
+    currentIdx = Math.min(sentences.length - 1, currentIdx + 15);
+    if (was) { isPlaying = true; speakFrom(currentIdx); } else updateProgress();
+  }
+
+  function updateSpeed(v) {
+    document.getElementById('speed-out').textContent = parseFloat(v).toFixed(1) + '×';
+    if (isPlaying) { const idx = currentIdx; speechSynthesis.cancel(); speakFrom(idx); }
+  }
+
+  function updateVoice() {
+    const sel = document.getElementById('voice-select');
+    selectedVoice = voices[sel.value] || voices[0];
+    if (isPlaying) { const idx = currentIdx; speechSynthesis.cancel(); speakFrom(idx); }
+  }
+
+  function resetReader() {
+    speechSynthesis.cancel();
+    isPlaying = false;
+    sentences = [];
+    currentIdx = 0;
+    document.getElementById('reader').style.display = 'none';
+    document.getElementById('drop-zone').style.display = 'block';
+    fileInput.value = '';
+    setStatus('idle');
+  }
+</script>
+</body>
+</html>

@@ -1,342 +1,400 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta property="og:title" content="Ghenet's Audio Book Reader" />
-  <meta property="og:description" content="Upload a book and listen" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ghenet's Reading Room</title>
+
+  <meta property="og:title" content="Ghenet's Reading Room" />
+  <meta property="og:description" content="Upload a book and let it read to you. Made with love, by O." />
   <meta property="og:image" content="https://olu-git.github.io/ghenet-book-reader/ghenet-photo.jpeg" />
   <meta property="og:url" content="https://olu-git.github.io/ghenet-book-reader" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Book Reader</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Karla:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #ffffff;
-      --bg-secondary: #f5f5f4;
-      --bg-tertiary: #eeece9;
-      --text: #1a1a18;
-      --text-secondary: #6b6b68;
-      --text-tertiary: #9b9b98;
-      --border: rgba(0,0,0,0.12);
-      --border-secondary: rgba(0,0,0,0.22);
-      --radius-md: 8px;
-      --radius-lg: 12px;
-      --accent: #185fa5;
-      --accent-bg: #e6f1fb;
-      --accent-text: #0c447c;
-      --success-bg: #eaf3de;
-      --success-text: #3b6d11;
-      --warning-bg: #faeeda;
-      --warning-text: #854f0b;
-      --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
+      --snow: #faf8f5;
+      --ink: #16130f;
+      --ink-soft: #4a443c;
+      --ink-faint: #8a8378;
+      --red: #c0271f;
+      --red-deep: #8f1a14;
+      --red-soft: #fbeae8;
+      --gold: #d9a05b;
+      --card: rgba(250, 248, 245, 0.92);
+      --line: rgba(22, 19, 15, 0.12);
+      --serif: 'Fraunces', Georgia, serif;
+      --sans: 'Karla', system-ui, sans-serif;
     }
 
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #1e1e1c;
-        --bg-secondary: #2a2a28;
-        --bg-tertiary: #323230;
-        --text: #f0ede8;
-        --text-secondary: #a0a09c;
-        --text-tertiary: #6b6b68;
-        --border: rgba(255,255,255,0.1);
-        --border-secondary: rgba(255,255,255,0.18);
-        --accent: #378add;
-        --accent-bg: #0c2a45;
-        --accent-text: #85b7eb;
-        --success-bg: #173404;
-        --success-text: #97c459;
-        --warning-bg: #412402;
-        --warning-text: #ef9f27;
-      }
-    }
+    html { scroll-behavior: smooth; }
 
     body {
-      font-family: var(--font);
-      background: var(--bg-tertiary);
+      font-family: var(--sans);
+      color: var(--ink);
       min-height: 100vh;
-      display: flex;
-      align-items: flex-start;
-      justify-content: center;
-      padding: 2rem 1rem;
-      color: var(--text);
+      background: var(--ink);
     }
 
-    #app {
+    /* ---------- hero photo ---------- */
+    .hero {
+      position: relative;
+      height: 46vh;
+      min-height: 320px;
+      background: url('bg.jpeg') center 30% / cover no-repeat;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(22,19,15,0.05) 40%, rgba(250,248,245,1) 100%);
+    }
+
+    .hero-caption {
+      position: absolute;
+      bottom: 12%;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      text-align: center;
       width: 100%;
+      padding: 0 1rem;
+    }
+
+    .hero-caption h1 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(30px, 6vw, 52px);
+      letter-spacing: 0.01em;
+      color: var(--ink);
+      text-shadow: 0 1px 24px rgba(250,248,245,0.9), 0 0 60px rgba(250,248,245,0.8);
+    }
+
+    .hero-caption p {
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 300;
+      font-size: clamp(15px, 2.4vw, 19px);
+      color: var(--ink-soft);
+      margin-top: 6px;
+      text-shadow: 0 1px 16px rgba(250,248,245,0.95);
+    }
+
+    /* ---------- page body ---------- */
+    .page {
+      background: var(--snow);
+      padding: 0 1.25rem 4rem;
+    }
+
+    .shelf {
       max-width: 620px;
+      margin: 0 auto;
     }
 
-    header {
-      margin-bottom: 1.5rem;
-    }
-
-    header h1 {
-      font-size: 20px;
-      font-weight: 500;
-      color: var(--text);
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    header h1 i { font-size: 22px; color: var(--accent); }
-    header p { font-size: 14px; color: var(--text-secondary); margin-top: 4px; }
-
+    /* ---------- upload ---------- */
     #drop-zone {
-      border: 1.5px dashed var(--border-secondary);
-      border-radius: var(--radius-lg);
+      border: 1.5px dashed rgba(22,19,15,0.28);
+      border-radius: 18px;
       padding: 3rem 2rem;
       text-align: center;
       cursor: pointer;
-      transition: background 0.15s, border-color 0.15s;
-      background: var(--bg);
-      margin-bottom: 1.5rem;
+      transition: border-color 0.2s, background 0.2s;
+      background: rgba(255,255,255,0.6);
     }
 
-    #drop-zone:hover, #drop-zone.drag {
-      background: var(--bg-secondary);
-      border-color: var(--accent);
+    #drop-zone:hover, #drop-zone:focus-visible, #drop-zone.drag {
+      border-color: var(--red);
+      background: var(--red-soft);
+      outline: none;
     }
 
-    #drop-zone i { font-size: 36px; color: var(--text-secondary); display: block; margin-bottom: 0.75rem; }
-    #drop-zone p { color: var(--text); font-size: 15px; font-weight: 500; margin-bottom: 4px; }
-    #drop-zone span { font-size: 13px; color: var(--text-tertiary); }
+    #drop-zone .dz-glyph {
+      font-family: var(--serif);
+      font-size: 40px;
+      font-weight: 300;
+      color: var(--red);
+      line-height: 1;
+      margin-bottom: 0.75rem;
+    }
+
+    #drop-zone p { font-size: 16px; font-weight: 500; color: var(--ink); }
+    #drop-zone span { font-size: 13.5px; color: var(--ink-faint); display: block; margin-top: 4px; }
     #file-input { display: none; }
-
-    #reader { display: none; }
-
-    .card {
-      background: var(--bg);
-      border: 0.5px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 1.25rem;
-      margin-bottom: 1rem;
-    }
-
-    .book-meta {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 1.25rem;
-    }
-
-    .book-icon {
-      width: 46px;
-      height: 46px;
-      border-radius: var(--radius-md);
-      background: var(--accent-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .book-icon i { font-size: 22px; color: var(--accent-text); }
-    .book-meta-text { flex: 1; min-width: 0; }
-    .book-name { font-size: 15px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .book-pages { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
-
-    .reset-btn {
-      font-size: 13px;
-      color: var(--text-secondary);
-      background: none;
-      border: 0.5px solid var(--border);
-      cursor: pointer;
-      padding: 6px 10px;
-      border-radius: var(--radius-md);
-      font-family: var(--font);
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      flex-shrink: 0;
-    }
-
-    .reset-btn:hover { background: var(--bg-secondary); }
-
-    .progress-bar { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; margin-bottom: 6px; }
-    .progress-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 0.4s; }
-    .progress-label { font-size: 12px; color: var(--text-tertiary); margin-bottom: 1rem; }
-
-    .text-preview {
-      font-size: 14px;
-      line-height: 1.75;
-      color: var(--text-secondary);
-      max-height: 140px;
-      overflow-y: auto;
-      padding: 0.875rem 1rem;
-      background: var(--bg-secondary);
-      border-radius: var(--radius-md);
-      border: 0.5px solid var(--border);
-      margin-bottom: 1rem;
-    }
-
-    .status-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 0.875rem;
-    }
-
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 12px;
-      padding: 3px 10px;
-      border-radius: 20px;
-      font-weight: 500;
-    }
-
-    .status-pill.playing { background: var(--success-bg); color: var(--success-text); }
-    .status-pill.paused  { background: var(--warning-bg); color: var(--warning-text); }
-    .status-pill.idle    { background: var(--bg-secondary); color: var(--text-secondary); }
-
-    .controls {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 1rem;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 16px;
-      border: 0.5px solid var(--border-secondary);
-      border-radius: var(--radius-md);
-      background: transparent;
-      cursor: pointer;
-      font-size: 14px;
-      color: var(--text);
-      font-family: var(--font);
-      transition: background 0.1s, transform 0.1s;
-    }
-
-    .btn:hover { background: var(--bg-secondary); }
-    .btn:active { transform: scale(0.97); }
-
-    .btn.primary {
-      background: var(--text);
-      color: var(--bg);
-      border-color: transparent;
-      font-weight: 500;
-    }
-
-    .btn.primary:hover { opacity: 0.85; }
-
-    .slider-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 0.625rem;
-    }
-
-    .slider-row label {
-      font-size: 13px;
-      color: var(--text-secondary);
-      min-width: 44px;
-    }
-
-    .slider-row input[type=range] { flex: 1; accent-color: var(--accent); cursor: pointer; }
-    .slider-row .val { font-size: 13px; font-weight: 500; min-width: 36px; text-align: right; color: var(--text); }
-
-    select {
-      flex: 1;
-      border: 0.5px solid var(--border-secondary);
-      border-radius: var(--radius-md);
-      padding: 6px 10px;
-      font-size: 13px;
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--font);
-      cursor: pointer;
-    }
 
     #loading-msg {
       display: none;
       text-align: center;
-      padding: 2rem;
-      color: var(--text-secondary);
-      font-size: 14px;
-      background: var(--bg);
-      border-radius: var(--radius-lg);
-      border: 0.5px solid var(--border);
-      margin-bottom: 1rem;
+      padding: 3rem 2rem;
+      background: rgba(255,255,255,0.6);
+      border-radius: 18px;
+      font-family: var(--serif);
+      font-style: italic;
+      font-size: 17px;
+      color: var(--ink-soft);
     }
 
-    #loading-msg i { font-size: 28px; display: block; margin-bottom: 8px; color: var(--accent); }
+    /* ---------- reader card ---------- */
+    #reader { display: none; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 1.75rem;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 40px rgba(22,19,15,0.08);
+    }
+
+    .book-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 0.375rem; }
+    .book-name {
+      font-family: var(--serif);
+      font-size: 24px;
+      font-weight: 400;
+      color: var(--ink);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .book-pages { font-size: 13px; color: var(--ink-faint); margin-bottom: 1.25rem; }
+
+    .reset-btn {
+      font-family: var(--sans);
+      font-size: 13px;
+      color: var(--ink-soft);
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      flex-shrink: 0;
+    }
+    .reset-btn:hover { color: var(--red); }
+
+    .progress-bar {
+      height: 3px;
+      background: var(--line);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    .progress-fill { height: 100%; background: var(--red); width: 0%; transition: width 0.4s; }
+    .progress-label { font-size: 12.5px; color: var(--ink-faint); margin-bottom: 1.25rem; }
+
+    .text-preview {
+      font-family: var(--serif);
+      font-weight: 300;
+      font-size: 16.5px;
+      line-height: 1.85;
+      color: var(--ink-soft);
+      max-height: 150px;
+      overflow-y: auto;
+      padding: 1.125rem 1.25rem;
+      background: rgba(255,255,255,0.75);
+      border-left: 2px solid var(--red);
+      margin-bottom: 1.5rem;
+    }
+
+    /* ---------- transport controls ---------- */
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 1.5rem;
+    }
+
+    .ctl {
+      font-family: var(--sans);
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.8);
+      color: var(--ink);
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: transform 0.12s, border-color 0.15s;
+    }
+    .ctl:hover { border-color: var(--ink); }
+    .ctl:active { transform: scale(0.94); }
+
+    .ctl.play {
+      width: 68px;
+      height: 68px;
+      background: var(--red);
+      border-color: var(--red);
+      color: var(--snow);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .ctl.play:hover { background: var(--red-deep); border-color: var(--red-deep); }
+
+    .status-line {
+      text-align: center;
+      font-size: 13px;
+      color: var(--ink-faint);
+      margin-bottom: 1.5rem;
+      min-height: 18px;
+      font-style: italic;
+      font-family: var(--serif);
+    }
+
+    /* ---------- settings ---------- */
+    .setting { margin-bottom: 1.125rem; }
+    .setting label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-faint);
+      margin-bottom: 8px;
+    }
+
+    .speed-row { display: flex; align-items: center; gap: 12px; }
+    .speed-row input[type=range] { flex: 1; accent-color: var(--red); cursor: pointer; }
+    .speed-row .val { font-size: 14px; font-weight: 600; min-width: 40px; text-align: right; color: var(--ink); }
+
+    .voice-list { display: flex; flex-direction: column; gap: 8px; }
+
+    .voice-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.7);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .voice-option:hover { border-color: var(--ink-faint); }
+    .voice-option.selected { border-color: var(--red); background: var(--red-soft); }
+
+    .voice-option .v-name { font-size: 14.5px; font-weight: 500; color: var(--ink); flex: 1; }
+    .voice-option .v-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--red-deep);
+      background: rgba(192,39,31,0.1);
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .v-preview {
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ink-soft);
+      background: none;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 5px 12px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .v-preview:hover { border-color: var(--red); color: var(--red); }
+
+    .voice-note { font-size: 12.5px; color: var(--ink-faint); margin-top: 10px; line-height: 1.6; }
+
+    /* ---------- footer note ---------- */
+    .love-note {
+      text-align: center;
+      margin-top: 3rem;
+      font-family: var(--serif);
+      font-style: italic;
+      font-weight: 300;
+      font-size: 15px;
+      color: var(--ink-faint);
+    }
+    .love-note .heart { color: var(--red); font-style: normal; }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition: none !important; }
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 1.25rem; }
+      .hero { height: 38vh; min-height: 260px; }
+    }
   </style>
 </head>
 <body>
-<div id="app">
-  <header>
-    <h1><i class="ti ti-headphones" aria-hidden="true"></i> Book Reader</h1>
-    <p>Upload a PDF or text file and have it read aloud — free, no sign-up</p>
-  </header>
 
-  <div id="drop-zone" onclick="document.getElementById('file-input').click()" role="button" tabindex="0" aria-label="Upload a PDF or text file">
-    <i class="ti ti-cloud-upload" aria-hidden="true"></i>
-    <p>Drop a PDF or .txt file here</p>
-    <span>Or click to browse your device</span>
-    <input type="file" id="file-input" accept=".pdf,.txt">
+<div class="hero" role="img" aria-label="Olumide and Ghenet smiling in the snow">
+  <div class="hero-caption">
+    <h1>Ghenet's Reading Room</h1>
+    <p>bring a book, get comfortable — it'll read to you</p>
   </div>
+</div>
 
-  <div id="loading-msg">
-    <i class="ti ti-loader ti-spin" aria-hidden="true"></i>
-    Extracting text — hang on a moment…
-  </div>
+<div class="page">
+  <div class="shelf">
 
-  <div id="reader">
-    <div class="card">
-      <div class="book-meta">
-        <div class="book-icon"><i class="ti ti-book" aria-hidden="true"></i></div>
-        <div class="book-meta-text">
-          <div class="book-name" id="book-name">—</div>
-          <div class="book-pages" id="book-pages">—</div>
-        </div>
-        <button class="reset-btn" onclick="resetReader()"><i class="ti ti-refresh" aria-hidden="true"></i> New book</button>
-      </div>
-
-      <div class="progress-bar"><div class="progress-fill" id="prog-fill"></div></div>
-      <div class="progress-label" id="prog-label">0% read</div>
-
-      <div class="text-preview" id="preview-text"></div>
-
-      <div class="status-row">
-        <span class="status-pill idle" id="status-pill">
-          <i class="ti ti-circle" aria-hidden="true"></i>
-          <span id="status-txt">Ready</span>
-        </span>
-      </div>
-
-      <div class="controls">
-        <button class="btn primary" id="play-btn" onclick="togglePlay()">
-          <i class="ti ti-player-play" id="play-icon" aria-hidden="true"></i>
-          <span id="play-label">Play</span>
-        </button>
-        <button class="btn" onclick="stopReading()"><i class="ti ti-player-stop" aria-hidden="true"></i> Stop</button>
-        <button class="btn" onclick="skipBack()"><i class="ti ti-rewind" aria-hidden="true"></i> −30s</button>
-        <button class="btn" onclick="skipForward()"><i class="ti ti-fast-forward" aria-hidden="true"></i> +30s</button>
-      </div>
-
-      <div class="slider-row">
-        <label for="speed">Speed</label>
-        <input type="range" id="speed" min="0.5" max="2" step="0.1" value="1" oninput="updateSpeed(this.value)">
-        <span class="val" id="speed-out">1.0×</span>
-      </div>
-
-      <div class="slider-row">
-        <label for="voice-select">Voice</label>
-        <select id="voice-select" onchange="updateVoice()"></select>
-      </div>
+    <div id="drop-zone" onclick="document.getElementById('file-input').click()" role="button" tabindex="0" aria-label="Upload a PDF or text file">
+      <div class="dz-glyph">❦</div>
+      <p>Drop a book here</p>
+      <span>PDF or .txt — or tap to browse</span>
+      <input type="file" id="file-input" accept=".pdf,.txt">
     </div>
+
+    <div id="loading-msg">turning the pages&hellip;</div>
+
+    <div id="reader">
+      <div class="card">
+        <div class="book-meta">
+          <div class="book-name" id="book-name">—</div>
+          <button class="reset-btn" onclick="resetReader()">new book</button>
+        </div>
+        <div class="book-pages" id="book-pages">—</div>
+
+        <div class="progress-bar" id="prog-bar" title="Tap to jump"><div class="progress-fill" id="prog-fill"></div></div>
+        <div class="progress-label" id="prog-label">0% read</div>
+
+        <div class="text-preview" id="preview-text"></div>
+
+        <div class="controls">
+          <button class="ctl" onclick="skipBack()" aria-label="Back 30 seconds">−30</button>
+          <button class="ctl play" id="play-btn" onclick="togglePlay()" aria-label="Play or pause">
+            <span id="play-label">Play</span>
+          </button>
+          <button class="ctl" onclick="skipForward()" aria-label="Forward 30 seconds">+30</button>
+        </div>
+
+        <div class="status-line" id="status-txt">ready when you are</div>
+
+        <div class="setting">
+          <label for="speed">Reading speed</label>
+          <div class="speed-row">
+            <input type="range" id="speed" min="0.6" max="1.8" step="0.1" value="1" oninput="updateSpeed(this.value)">
+            <span class="val" id="speed-out">1.0×</span>
+          </div>
+        </div>
+
+        <div class="setting">
+          <label>Voice</label>
+          <div class="voice-list" id="voice-list"></div>
+          <div class="voice-note" id="voice-note"></div>
+        </div>
+      </div>
+
+      <div class="love-note">for G, with love — O <span class="heart">♥</span></div>
+    </div>
+
   </div>
 </div>
 
@@ -346,8 +404,11 @@
   let sentences = [];
   let currentIdx = 0;
   let isPlaying = false;
-  let voices = [];
+  let allVoices = [];
+  let rankedVoices = [];
   let selectedVoice = null;
+
+  const PREVIEW_LINE = "Once upon a time, in a little house near the Dandenongs, a good book found its voice.";
 
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input');
@@ -356,97 +417,189 @@
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
   dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('drag'); handleFile(e.dataTransfer.files[0]); });
   fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
-  dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+  dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
+
+  /* ---- voice curation ----
+     Scores voices so the warmest, most audiobook-like ones float to the top.
+     Australian voices get a boost, since the listener is in Melbourne. */
+  function scoreVoice(v) {
+    const n = v.name.toLowerCase();
+    let s = 0;
+    if (v.lang === 'en-AU') s += 30;
+    if (v.lang.startsWith('en')) s += 10; else return -1;
+    if (n.includes('natural') || n.includes('neural') || n.includes('premium') || n.includes('enhanced')) s += 40;
+    if (['karen','samantha','moira','serena','catherine','fiona','tessa','allison','ava','susan','stephanie','libby','natasha','hayley','aria','jenny','sonia','olivia'].some(k => n.includes(k))) s += 25;
+    if (n.includes('google')) s += 15;
+    if (n.includes('siri')) s += 20;
+    if (n.includes('compact') || n.includes('espeak') || n.includes('novelty')) s -= 50;
+    return s;
+  }
+
+  function friendlyTag(v) {
+    if (v.lang === 'en-AU') return 'Aussie';
+    if (v.lang === 'en-GB') return 'British';
+    if (v.lang === 'en-IE') return 'Irish';
+    if (v.lang === 'en-ZA') return 'Sth African';
+    if (v.lang === 'en-US') return 'American';
+    return v.lang;
+  }
+
+  function cleanName(v) {
+    return v.name
+      .replace(/microsoft |google |apple |online |\(natural\)|\(neural\)| - english.*$/gi, '')
+      .replace(/english \(.*\)/gi, '')
+      .trim() || v.name;
+  }
 
   function loadVoices() {
-    voices = speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
-    const sel = document.getElementById('voice-select');
-    sel.innerHTML = '';
-    voices.forEach((v, i) => {
-      const opt = document.createElement('option');
-      opt.value = i;
-      opt.textContent = v.name + (v.localService ? '' : ' ☁');
-      sel.appendChild(opt);
+    allVoices = speechSynthesis.getVoices();
+    if (!allVoices.length) return;
+
+    rankedVoices = allVoices
+      .map(v => ({ v, s: scoreVoice(v) }))
+      .filter(x => x.s >= 0)
+      .sort((a, b) => b.s - a.s)
+      .slice(0, 5)
+      .map(x => x.v);
+
+    if (!rankedVoices.length) rankedVoices = allVoices.slice(0, 5);
+    selectedVoice = rankedVoices[0];
+    renderVoices();
+  }
+
+  function renderVoices() {
+    const list = document.getElementById('voice-list');
+    list.innerHTML = '';
+    rankedVoices.forEach((v, i) => {
+      const row = document.createElement('div');
+      row.className = 'voice-option' + (v === selectedVoice ? ' selected' : '');
+      row.setAttribute('role', 'button');
+      row.setAttribute('tabindex', '0');
+
+      const name = document.createElement('span');
+      name.className = 'v-name';
+      name.textContent = cleanName(v);
+
+      const tag = document.createElement('span');
+      tag.className = 'v-tag';
+      tag.textContent = friendlyTag(v);
+
+      const btn = document.createElement('button');
+      btn.className = 'v-preview';
+      btn.textContent = 'Hear it';
+      btn.onclick = (e) => { e.stopPropagation(); previewVoice(v); };
+
+      row.onclick = () => selectVoice(v);
+      row.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectVoice(v); } };
+
+      row.appendChild(name);
+      row.appendChild(tag);
+      row.appendChild(btn);
+      list.appendChild(row);
     });
-    const pref = voices.findIndex(v =>
-      ['samantha','karen','zira','female','victoria','fiona'].some(k => v.name.toLowerCase().includes(k))
-    );
-    if (pref >= 0) sel.value = pref;
-    selectedVoice = voices[sel.value] || voices[0];
+
+    const hasGood = rankedVoices.some(v => /natural|neural|premium|enhanced|siri/i.test(v.name));
+    document.getElementById('voice-note').textContent = hasGood
+      ? 'Tip: voices marked natural sound the most like a real narrator.'
+      : 'Tip: for warmer voices, use Microsoft Edge, or download premium voices in your device accessibility settings.';
+  }
+
+  function selectVoice(v) {
+    selectedVoice = v;
+    renderVoices();
+    if (isPlaying) { const idx = currentIdx; speechSynthesis.cancel(); speakFrom(idx); }
+  }
+
+  function previewVoice(v) {
+    speechSynthesis.cancel();
+    isPlaying = false;
+    setStatus('idle');
+    const u = new SpeechSynthesisUtterance(PREVIEW_LINE);
+    u.voice = v;
+    u.rate = parseFloat(document.getElementById('speed').value);
+    speechSynthesis.speak(u);
   }
 
   speechSynthesis.onvoiceschanged = loadVoices;
   loadVoices();
 
+  /* ---- file handling ---- */
   async function handleFile(file) {
     if (!file) return;
     showLoading(true);
-    const name = file.name;
-    document.getElementById('book-name').textContent = name.replace(/\.[^.]+$/, '');
+    document.getElementById('book-name').textContent = file.name.replace(/\.[^.]+$/, '');
 
     try {
-      if (file.type === 'text/plain' || name.endsWith('.txt')) {
+      if (file.type === 'text/plain' || file.name.endsWith('.txt')) {
         const text = await file.text();
         processText(text, 1);
       } else {
         const buf = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-        const numPages = pdf.numPages;
         let text = '';
-        for (let i = 1; i <= numPages; i++) {
+        for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const content = await page.getTextContent();
           text += content.items.map(s => s.str).join(' ') + '\n';
         }
-        processText(text, numPages);
+        processText(text, pdf.numPages);
       }
     } catch (err) {
       showLoading(false);
-      alert('Could not read that file. Try a different PDF or a .txt file.');
+      alert("Couldn't read that file — try another PDF or a .txt file.");
       console.error(err);
     }
   }
 
   function processText(text, pages) {
     const clean = text.replace(/\s+/g, ' ').trim();
-    sentences = clean.match(/[^.!?]+[.!?]+[\s]*/g) || [clean];
-    sentences = sentences.filter(s => s.trim().length > 3);
+    sentences = (clean.match(/[^.!?]+[.!?]+[\s]*/g) || [clean]).filter(s => s.trim().length > 3);
     currentIdx = 0;
     document.getElementById('book-pages').textContent =
-      `${pages} page${pages > 1 ? 's' : ''} · ${sentences.length} sentences`;
+      `${pages} page${pages > 1 ? 's' : ''} · about ${estimateTime()} at 1×`;
     document.getElementById('preview-text').textContent =
-      clean.slice(0, 1500) + (clean.length > 1500 ? '…' : '');
+      clean.slice(0, 1400) + (clean.length > 1400 ? '…' : '');
     showLoading(false);
     document.getElementById('reader').style.display = 'block';
     updateProgress();
   }
 
-  function showLoading(show) {
-    document.getElementById('loading-msg').style.display = show ? 'block' : 'none';
-    document.getElementById('drop-zone').style.display = show ? 'none' : (document.getElementById('reader').style.display === 'block' ? 'none' : 'block');
+  function estimateTime() {
+    const words = sentences.join(' ').split(/\s+/).length;
+    const mins = Math.round(words / 160);
+    if (mins < 60) return `${mins} min`;
+    return `${Math.floor(mins / 60)}h ${mins % 60}m`;
   }
 
+  function showLoading(show) {
+    document.getElementById('loading-msg').style.display = show ? 'block' : 'none';
+    document.getElementById('drop-zone').style.display =
+      show || document.getElementById('reader').style.display === 'block' ? 'none' : 'block';
+  }
+
+  /* ---- playback ---- */
   function setStatus(state) {
-    const pill = document.getElementById('status-pill');
     const txt = document.getElementById('status-txt');
-    const icon = document.getElementById('play-icon');
     const label = document.getElementById('play-label');
-    pill.className = 'status-pill ' + state;
-    if (state === 'playing') {
-      txt.textContent = 'Reading…'; icon.className = 'ti ti-player-pause'; label.textContent = 'Pause';
-    } else if (state === 'paused') {
-      txt.textContent = 'Paused'; icon.className = 'ti ti-player-play'; label.textContent = 'Resume';
-    } else {
-      txt.textContent = 'Ready'; icon.className = 'ti ti-player-play'; label.textContent = 'Play';
-    }
+    if (state === 'playing') { txt.textContent = 'reading to you…'; label.textContent = 'Pause'; }
+    else if (state === 'paused') { txt.textContent = 'paused — pick up any time'; label.textContent = 'Resume'; }
+    else { txt.textContent = 'ready when you are'; label.textContent = 'Play'; }
   }
 
   function updateProgress() {
     const pct = sentences.length ? Math.round((currentIdx / sentences.length) * 100) : 0;
     document.getElementById('prog-fill').style.width = pct + '%';
-    document.getElementById('prog-label').textContent =
-      `${pct}% read — sentence ${currentIdx} of ${sentences.length}`;
+    document.getElementById('prog-label').textContent = `${pct}% read`;
   }
+
+  document.getElementById('prog-bar').addEventListener('click', e => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const frac = (e.clientX - rect.left) / rect.width;
+    const was = isPlaying;
+    speechSynthesis.cancel();
+    currentIdx = Math.min(sentences.length - 1, Math.max(0, Math.floor(frac * sentences.length)));
+    if (was) { isPlaying = true; speakFrom(currentIdx); } else updateProgress();
+  });
 
   function speakFrom(idx) {
     speechSynthesis.cancel();
@@ -471,24 +624,14 @@
       speechSynthesis.pause();
       isPlaying = false;
       setStatus('paused');
+    } else if (speechSynthesis.paused) {
+      speechSynthesis.resume();
+      isPlaying = true;
+      setStatus('playing');
     } else {
-      if (speechSynthesis.paused) {
-        speechSynthesis.resume();
-        isPlaying = true;
-        setStatus('playing');
-      } else {
-        isPlaying = true;
-        speakFrom(currentIdx);
-      }
+      isPlaying = true;
+      speakFrom(currentIdx);
     }
-  }
-
-  function stopReading() {
-    speechSynthesis.cancel();
-    isPlaying = false;
-    currentIdx = 0;
-    setStatus('idle');
-    updateProgress();
   }
 
   function skipBack() {
@@ -507,12 +650,6 @@
 
   function updateSpeed(v) {
     document.getElementById('speed-out').textContent = parseFloat(v).toFixed(1) + '×';
-    if (isPlaying) { const idx = currentIdx; speechSynthesis.cancel(); speakFrom(idx); }
-  }
-
-  function updateVoice() {
-    const sel = document.getElementById('voice-select');
-    selectedVoice = voices[sel.value] || voices[0];
     if (isPlaying) { const idx = currentIdx; speechSynthesis.cancel(); speakFrom(idx); }
   }
 

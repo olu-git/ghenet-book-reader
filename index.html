@@ -3,157 +3,123 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ghenet's Reading Room</title>
+  <title>Ghenet's Library</title>
 
-  <meta property="og:title" content="Ghenet's Reading Room" />
-  <meta property="og:description" content="Upload a book and let it read to you. Made with love, by O." />
+  <meta property="og:title" content="Ghenet's Library" />
+  <meta property="og:description" content="Upload a book and let it read to you." />
   <meta property="og:image" content="https://olu-git.github.io/ghenet-book-reader/ghenet-photo.jpeg" />
   <meta property="og:url" content="https://olu-git.github.io/ghenet-book-reader" />
   <meta name="twitter:card" content="summary_large_image" />
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Karla:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300&family=Karla:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --snow: #faf8f5;
-      --ink: #16130f;
-      --ink-soft: #4a443c;
-      --ink-faint: #8a8378;
-      --red: #c0271f;
-      --red-deep: #8f1a14;
-      --red-soft: #fbeae8;
-      --gold: #d9a05b;
-      --card: rgba(250, 248, 245, 0.92);
-      --line: rgba(22, 19, 15, 0.12);
+      --forest: #1d3a2f;        /* page background — deep library green */
+      --forest-soft: #274a3c;
+      --cream: #f7f3ea;         /* card */
+      --cream-dim: #efe9db;
+      --ink: #20261f;
+      --ink-soft: #56604f;
+      --ink-faint: #8b937f;
+      --brass: #b8863b;         /* accent — warm brass */
+      --brass-deep: #92671f;
+      --brass-soft: #f3e8d3;
+      --line: rgba(32, 38, 31, 0.14);
       --serif: 'Fraunces', Georgia, serif;
       --sans: 'Karla', system-ui, sans-serif;
     }
-
-    html { scroll-behavior: smooth; }
 
     body {
       font-family: var(--sans);
       color: var(--ink);
       min-height: 100vh;
-      background: var(--ink);
+      background: var(--forest);
+      padding: 3.5rem 1.25rem 4rem;
+      display: flex;
+      justify-content: center;
     }
 
-    /* ---------- hero photo ---------- */
-    .hero {
-      position: relative;
-      height: 46vh;
-      min-height: 320px;
-      background: url('bg.jpeg') center 30% / cover no-repeat;
-    }
+    .shelf { width: 100%; max-width: 600px; }
 
-    .hero::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom, rgba(22,19,15,0.05) 40%, rgba(250,248,245,1) 100%);
-    }
-
-    .hero-caption {
-      position: absolute;
-      bottom: 12%;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2;
+    /* ---------- title ---------- */
+    .masthead {
       text-align: center;
-      width: 100%;
-      padding: 0 1rem;
+      margin-bottom: 2.25rem;
     }
 
-    .hero-caption h1 {
+    .masthead h1 {
       font-family: var(--serif);
       font-weight: 400;
-      font-size: clamp(30px, 6vw, 52px);
+      font-size: clamp(34px, 7vw, 48px);
+      color: var(--cream);
       letter-spacing: 0.01em;
-      color: var(--ink);
-      text-shadow: 0 1px 24px rgba(250,248,245,0.9), 0 0 60px rgba(250,248,245,0.8);
     }
 
-    .hero-caption p {
-      font-family: var(--serif);
-      font-style: italic;
-      font-weight: 300;
-      font-size: clamp(15px, 2.4vw, 19px);
-      color: var(--ink-soft);
-      margin-top: 6px;
-      text-shadow: 0 1px 16px rgba(250,248,245,0.95);
-    }
-
-    /* ---------- page body ---------- */
-    .page {
-      background: var(--snow);
-      padding: 0 1.25rem 4rem;
-    }
-
-    .shelf {
-      max-width: 620px;
-      margin: 0 auto;
+    .masthead .rule {
+      width: 56px;
+      height: 2px;
+      background: var(--brass);
+      margin: 14px auto 0;
     }
 
     /* ---------- upload ---------- */
     #drop-zone {
-      border: 1.5px dashed rgba(22,19,15,0.28);
+      border: 1.5px dashed rgba(247,243,234,0.4);
       border-radius: 18px;
-      padding: 3rem 2rem;
+      padding: 3.25rem 2rem;
       text-align: center;
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
-      background: rgba(255,255,255,0.6);
+      color: var(--cream);
     }
 
     #drop-zone:hover, #drop-zone:focus-visible, #drop-zone.drag {
-      border-color: var(--red);
-      background: var(--red-soft);
+      border-color: var(--brass);
+      background: var(--forest-soft);
       outline: none;
     }
 
     #drop-zone .dz-glyph {
       font-family: var(--serif);
-      font-size: 40px;
+      font-size: 38px;
       font-weight: 300;
-      color: var(--red);
+      color: var(--brass);
       line-height: 1;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.875rem;
     }
 
-    #drop-zone p { font-size: 16px; font-weight: 500; color: var(--ink); }
-    #drop-zone span { font-size: 13.5px; color: var(--ink-faint); display: block; margin-top: 4px; }
+    #drop-zone p { font-size: 16px; font-weight: 500; }
+    #drop-zone span { font-size: 13.5px; opacity: 0.65; display: block; margin-top: 5px; }
     #file-input { display: none; }
 
     #loading-msg {
       display: none;
       text-align: center;
       padding: 3rem 2rem;
-      background: rgba(255,255,255,0.6);
-      border-radius: 18px;
       font-family: var(--serif);
       font-style: italic;
       font-size: 17px;
-      color: var(--ink-soft);
+      color: var(--cream);
+      opacity: 0.85;
     }
 
     /* ---------- reader card ---------- */
     #reader { display: none; }
 
     .card {
-      background: var(--card);
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 1.75rem;
-      backdrop-filter: blur(8px);
-      box-shadow: 0 10px 40px rgba(22,19,15,0.08);
+      background: var(--cream);
+      border-radius: 20px;
+      padding: 1.875rem;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.3);
     }
 
-    .book-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 0.375rem; }
+    .book-meta { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
     .book-name {
       font-family: var(--serif);
       font-size: 24px;
@@ -163,7 +129,7 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .book-pages { font-size: 13px; color: var(--ink-faint); margin-bottom: 1.25rem; }
+    .book-pages { font-size: 13px; color: var(--ink-faint); margin: 4px 0 1.375rem; }
 
     .reset-btn {
       font-family: var(--sans);
@@ -176,18 +142,7 @@
       text-underline-offset: 3px;
       flex-shrink: 0;
     }
-    .reset-btn:hover { color: var(--red); }
-
-    .progress-bar {
-      height: 3px;
-      background: var(--line);
-      border-radius: 2px;
-      overflow: hidden;
-      margin-bottom: 8px;
-      cursor: pointer;
-    }
-    .progress-fill { height: 100%; background: var(--red); width: 0%; transition: width 0.4s; }
-    .progress-label { font-size: 12.5px; color: var(--ink-faint); margin-bottom: 1.25rem; }
+    .reset-btn:hover { color: var(--brass-deep); }
 
     .text-preview {
       font-family: var(--serif);
@@ -195,103 +150,186 @@
       font-size: 16.5px;
       line-height: 1.85;
       color: var(--ink-soft);
-      max-height: 150px;
+      max-height: 140px;
       overflow-y: auto;
       padding: 1.125rem 1.25rem;
-      background: rgba(255,255,255,0.75);
-      border-left: 2px solid var(--red);
+      background: var(--cream-dim);
+      border-radius: 12px;
       margin-bottom: 1.5rem;
     }
 
-    /* ---------- transport controls ---------- */
+    /* ---------- timeline ---------- */
+    .timeline-wrap { margin-bottom: 1.375rem; }
+
+    .timeline-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12.5px;
+      color: var(--ink-faint);
+      margin-top: 6px;
+    }
+
+    input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      background: var(--line);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--brass);
+      border: 3px solid var(--cream);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+      cursor: grab;
+    }
+
+    input[type=range]::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--brass);
+      border: 3px solid var(--cream);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+      cursor: grab;
+    }
+
+    input[type=range]:focus-visible { outline: 2px solid var(--brass); outline-offset: 4px; }
+
+    #timeline {
+      background: linear-gradient(to right, var(--brass) 0%, var(--brass) var(--fill, 0%), var(--line) var(--fill, 0%));
+    }
+
+    /* ---------- transport ---------- */
     .controls {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 14px;
-      margin-bottom: 1.5rem;
+      gap: 16px;
+      margin-bottom: 0.875rem;
     }
 
     .ctl {
       font-family: var(--sans);
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.8);
+      background: transparent;
       color: var(--ink);
       border-radius: 50%;
-      width: 48px;
-      height: 48px;
+      width: 50px;
+      height: 50px;
       font-size: 12px;
       font-weight: 600;
-      letter-spacing: 0.02em;
       cursor: pointer;
       transition: transform 0.12s, border-color 0.15s;
     }
-    .ctl:hover { border-color: var(--ink); }
+    .ctl:hover { border-color: var(--ink-soft); }
     .ctl:active { transform: scale(0.94); }
 
     .ctl.play {
-      width: 68px;
-      height: 68px;
-      background: var(--red);
-      border-color: var(--red);
-      color: var(--snow);
-      font-size: 14px;
-      font-weight: 600;
+      width: 72px;
+      height: 72px;
+      background: var(--brass);
+      border-color: var(--brass);
+      color: var(--cream);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
-    .ctl.play:hover { background: var(--red-deep); border-color: var(--red-deep); }
+    .ctl.play:hover { background: var(--brass-deep); border-color: var(--brass-deep); }
+
+    .ctl.play svg { width: 26px; height: 26px; fill: currentColor; }
+    #icon-pause { display: none; }
+    .ctl.play.playing #icon-play { display: none; }
+    .ctl.play.playing #icon-pause { display: block; }
 
     .status-line {
       text-align: center;
-      font-size: 13px;
+      font-size: 13.5px;
       color: var(--ink-faint);
-      margin-bottom: 1.5rem;
+      margin-bottom: 1.625rem;
       min-height: 18px;
       font-style: italic;
       font-family: var(--serif);
     }
 
     /* ---------- settings ---------- */
-    .setting { margin-bottom: 1.125rem; }
-    .setting label {
+    .setting { margin-bottom: 1.375rem; }
+    .setting:last-child { margin-bottom: 0; }
+
+    .setting > label {
       display: block;
-      font-size: 12px;
+      font-size: 11.5px;
       font-weight: 600;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--ink-faint);
-      margin-bottom: 8px;
+      margin-bottom: 10px;
     }
 
-    .speed-row { display: flex; align-items: center; gap: 12px; }
-    .speed-row input[type=range] { flex: 1; accent-color: var(--red); cursor: pointer; }
-    .speed-row .val { font-size: 14px; font-weight: 600; min-width: 40px; text-align: right; color: var(--ink); }
+    /* speed presets */
+    .speed-group {
+      display: flex;
+      gap: 8px;
+    }
 
+    .speed-chip {
+      flex: 1;
+      font-family: var(--sans);
+      font-size: 13.5px;
+      font-weight: 600;
+      padding: 9px 0;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: transparent;
+      color: var(--ink-soft);
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s, color 0.15s;
+    }
+
+    .speed-chip:hover { border-color: var(--ink-soft); }
+
+    .speed-chip.selected {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--cream);
+    }
+
+    /* voices */
     .voice-list { display: flex; flex-direction: column; gap: 8px; }
 
     .voice-option {
       display: flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 14px;
+      padding: 11px 14px;
       border: 1px solid var(--line);
       border-radius: 12px;
-      background: rgba(255,255,255,0.7);
+      background: transparent;
       cursor: pointer;
       transition: border-color 0.15s, background 0.15s;
     }
-    .voice-option:hover { border-color: var(--ink-faint); }
-    .voice-option.selected { border-color: var(--red); background: var(--red-soft); }
+    .voice-option:hover { border-color: var(--ink-soft); }
+    .voice-option.selected { border-color: var(--brass); background: var(--brass-soft); }
 
     .voice-option .v-name { font-size: 14.5px; font-weight: 500; color: var(--ink); flex: 1; }
     .voice-option .v-tag {
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 600;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
-      color: var(--red-deep);
-      background: rgba(192,39,31,0.1);
-      padding: 2px 8px;
+      color: var(--brass-deep);
+      background: rgba(184,134,59,0.14);
+      padding: 3px 9px;
       border-radius: 20px;
+      flex-shrink: 0;
     }
 
     .v-preview {
@@ -302,100 +340,91 @@
       background: none;
       border: 1px solid var(--line);
       border-radius: 20px;
-      padding: 5px 12px;
+      padding: 5px 13px;
       cursor: pointer;
       flex-shrink: 0;
     }
-    .v-preview:hover { border-color: var(--red); color: var(--red); }
+    .v-preview:hover { border-color: var(--brass-deep); color: var(--brass-deep); }
 
     .voice-note { font-size: 12.5px; color: var(--ink-faint); margin-top: 10px; line-height: 1.6; }
 
-    /* ---------- footer note ---------- */
-    .love-note {
-      text-align: center;
-      margin-top: 3rem;
-      font-family: var(--serif);
-      font-style: italic;
-      font-weight: 300;
-      font-size: 15px;
-      color: var(--ink-faint);
-    }
-    .love-note .heart { color: var(--red); font-style: normal; }
-
     @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
       * { transition: none !important; }
     }
 
     @media (max-width: 480px) {
-      .card { padding: 1.25rem; }
-      .hero { height: 38vh; min-height: 260px; }
+      body { padding: 2.25rem 1rem 3rem; }
+      .card { padding: 1.375rem; }
+      .speed-chip { font-size: 12.5px; }
     }
   </style>
 </head>
 <body>
 
-<div class="hero" role="img" aria-label="Olumide and Ghenet smiling in the snow">
-  <div class="hero-caption">
-    <h1>Ghenet's Reading Room</h1>
-    <p>bring a book, get comfortable — it'll read to you</p>
+<div class="shelf">
+
+  <div class="masthead">
+    <h1>Ghenet's Library</h1>
+    <div class="rule"></div>
   </div>
-</div>
 
-<div class="page">
-  <div class="shelf">
+  <div id="drop-zone" onclick="document.getElementById('file-input').click()" role="button" tabindex="0" aria-label="Upload a PDF or text file">
+    <div class="dz-glyph">❦</div>
+    <p>Drop a book here</p>
+    <span>PDF or .txt — or tap to browse</span>
+    <input type="file" id="file-input" accept=".pdf,.txt">
+  </div>
 
-    <div id="drop-zone" onclick="document.getElementById('file-input').click()" role="button" tabindex="0" aria-label="Upload a PDF or text file">
-      <div class="dz-glyph">❦</div>
-      <p>Drop a book here</p>
-      <span>PDF or .txt — or tap to browse</span>
-      <input type="file" id="file-input" accept=".pdf,.txt">
-    </div>
+  <div id="loading-msg">turning the pages&hellip;</div>
 
-    <div id="loading-msg">turning the pages&hellip;</div>
+  <div id="reader">
+    <div class="card">
+      <div class="book-meta">
+        <div class="book-name" id="book-name">—</div>
+        <button class="reset-btn" onclick="resetReader()">new book</button>
+      </div>
+      <div class="book-pages" id="book-pages">—</div>
 
-    <div id="reader">
-      <div class="card">
-        <div class="book-meta">
-          <div class="book-name" id="book-name">—</div>
-          <button class="reset-btn" onclick="resetReader()">new book</button>
-        </div>
-        <div class="book-pages" id="book-pages">—</div>
+      <div class="text-preview" id="preview-text"></div>
 
-        <div class="progress-bar" id="prog-bar" title="Tap to jump"><div class="progress-fill" id="prog-fill"></div></div>
-        <div class="progress-label" id="prog-label">0% read</div>
-
-        <div class="text-preview" id="preview-text"></div>
-
-        <div class="controls">
-          <button class="ctl" onclick="skipBack()" aria-label="Back 30 seconds">−30</button>
-          <button class="ctl play" id="play-btn" onclick="togglePlay()" aria-label="Play or pause">
-            <span id="play-label">Play</span>
-          </button>
-          <button class="ctl" onclick="skipForward()" aria-label="Forward 30 seconds">+30</button>
-        </div>
-
-        <div class="status-line" id="status-txt">ready when you are</div>
-
-        <div class="setting">
-          <label for="speed">Reading speed</label>
-          <div class="speed-row">
-            <input type="range" id="speed" min="0.6" max="1.8" step="0.1" value="1" oninput="updateSpeed(this.value)">
-            <span class="val" id="speed-out">1.0×</span>
-          </div>
-        </div>
-
-        <div class="setting">
-          <label>Voice</label>
-          <div class="voice-list" id="voice-list"></div>
-          <div class="voice-note" id="voice-note"></div>
+      <div class="timeline-wrap">
+        <input type="range" id="timeline" min="0" max="100" step="1" value="0"
+               aria-label="Book timeline — drag to jump">
+        <div class="timeline-labels">
+          <span id="tl-elapsed">0%</span>
+          <span id="tl-remaining">—</span>
         </div>
       </div>
 
-      <div class="love-note">for G, with love — O <span class="heart">♥</span></div>
-    </div>
+      <div class="controls">
+        <button class="ctl" onclick="skipBack()" aria-label="Back 30 seconds">−30</button>
+        <button class="ctl play" id="play-btn" onclick="togglePlay()" aria-label="Play or pause">
+          <svg id="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+          <svg id="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>
+        </button>
+        <button class="ctl" onclick="skipForward()" aria-label="Forward 30 seconds">+30</button>
+      </div>
 
+      <div class="status-line" id="status-txt">ready when you are</div>
+
+      <div class="setting">
+        <label>Reading speed</label>
+        <div class="speed-group" id="speed-group">
+          <button class="speed-chip" data-rate="0.8">0.8×</button>
+          <button class="speed-chip selected" data-rate="1">1×</button>
+          <button class="speed-chip" data-rate="1.2">1.2×</button>
+          <button class="speed-chip" data-rate="1.5">1.5×</button>
+        </div>
+      </div>
+
+      <div class="setting">
+        <label>Voice</label>
+        <div class="voice-list" id="voice-list"></div>
+        <div class="voice-note" id="voice-note"></div>
+      </div>
+    </div>
   </div>
+
 </div>
 
 <script>
@@ -404,14 +433,17 @@
   let sentences = [];
   let currentIdx = 0;
   let isPlaying = false;
+  let rate = 1;
   let allVoices = [];
   let rankedVoices = [];
   let selectedVoice = null;
+  let scrubbing = false;
 
-  const PREVIEW_LINE = "Once upon a time, in a little house near the Dandenongs, a good book found its voice.";
+  const PREVIEW_LINE = "Once upon a time, a very good book found its voice, and it sounded a little like this.";
 
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input');
+  const timeline = document.getElementById('timeline');
 
   dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
   dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
@@ -420,34 +452,35 @@
   dropZone.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); } });
 
   /* ---- voice curation ----
-     Scores voices so the warmest, most audiobook-like ones float to the top.
-     Australian voices get a boost, since the listener is in Melbourne. */
+     Tuned for Safari and Chrome.
+     Safari (Mac/iPhone): Apple's premium voices — Samantha, Karen, Moira, Zoe,
+       Ava, and any Siri voices — are the smoothest.
+     Chrome (desktop): the cloud-backed "Google" voices (Google US English,
+       Google UK English Female) are far smoother than the local defaults. */
   function scoreVoice(v) {
     const n = v.name.toLowerCase();
+    if (!v.lang.toLowerCase().startsWith('en')) return -1;
     let s = 0;
-    if (v.lang === 'en-AU') s += 30;
-    if (v.lang.startsWith('en')) s += 10; else return -1;
-    if (n.includes('natural') || n.includes('neural') || n.includes('premium') || n.includes('enhanced')) s += 40;
-    if (['karen','samantha','moira','serena','catherine','fiona','tessa','allison','ava','susan','stephanie','libby','natasha','hayley','aria','jenny','sonia','olivia'].some(k => n.includes(k))) s += 25;
-    if (n.includes('google')) s += 15;
-    if (n.includes('siri')) s += 20;
-    if (n.includes('compact') || n.includes('espeak') || n.includes('novelty')) s -= 50;
+
+    if (n.includes('google')) s += 45;                    /* Chrome's best */
+    if (n.includes('siri')) s += 50;                      /* Safari's best */
+    if (/premium|enhanced|natural|neural/.test(n)) s += 40;
+    if (['samantha','ava','zoe','karen','moira','serena','allison','susan','joelle','isha','matilda','nicky'].some(k => n.includes(k))) s += 30;
+    if (v.lang === 'en-AU') s += 15;                      /* a familiar accent */
+    if (v.lang === 'en-GB' || v.lang === 'en-IE') s += 8;
+    if (/compact|espeak|novelty|whisper|bells|bad news|good news|organ|cellos|zarvox|trinoids|albert|fred|junior|kathy|ralph/.test(n)) s -= 80;
     return s;
   }
 
   function friendlyTag(v) {
-    if (v.lang === 'en-AU') return 'Aussie';
-    if (v.lang === 'en-GB') return 'British';
-    if (v.lang === 'en-IE') return 'Irish';
-    if (v.lang === 'en-ZA') return 'Sth African';
-    if (v.lang === 'en-US') return 'American';
-    return v.lang;
+    const map = { 'en-AU': 'Aussie', 'en-GB': 'British', 'en-IE': 'Irish', 'en-US': 'American', 'en-ZA': 'Sth African', 'en-IN': 'Indian' };
+    return map[v.lang] || v.lang;
   }
 
   function cleanName(v) {
     return v.name
-      .replace(/microsoft |google |apple |online |\(natural\)|\(neural\)| - english.*$/gi, '')
-      .replace(/english \(.*\)/gi, '')
+      .replace(/microsoft |apple |online |\(natural\)|\(neural\)|\(premium\)|\(enhanced\)| - english.*$/gi, '')
+      .replace(/english \(.*?\)/gi, '')
       .trim() || v.name;
   }
 
@@ -455,22 +488,29 @@
     allVoices = speechSynthesis.getVoices();
     if (!allVoices.length) return;
 
+    const seen = new Set();
     rankedVoices = allVoices
       .map(v => ({ v, s: scoreVoice(v) }))
       .filter(x => x.s >= 0)
       .sort((a, b) => b.s - a.s)
+      .filter(x => {
+        const key = cleanName(x.v).toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
       .slice(0, 5)
       .map(x => x.v);
 
     if (!rankedVoices.length) rankedVoices = allVoices.slice(0, 5);
-    selectedVoice = rankedVoices[0];
+    if (!selectedVoice || !rankedVoices.includes(selectedVoice)) selectedVoice = rankedVoices[0];
     renderVoices();
   }
 
   function renderVoices() {
     const list = document.getElementById('voice-list');
     list.innerHTML = '';
-    rankedVoices.forEach((v, i) => {
+    rankedVoices.forEach(v => {
       const row = document.createElement('div');
       row.className = 'voice-option' + (v === selectedVoice ? ' selected' : '');
       row.setAttribute('role', 'button');
@@ -498,10 +538,11 @@
       list.appendChild(row);
     });
 
-    const hasGood = rankedVoices.some(v => /natural|neural|premium|enhanced|siri/i.test(v.name));
-    document.getElementById('voice-note').textContent = hasGood
-      ? 'Tip: voices marked natural sound the most like a real narrator.'
-      : 'Tip: for warmer voices, use Microsoft Edge, or download premium voices in your device accessibility settings.';
+    const ua = navigator.userAgent;
+    const isSafari = /safari/i.test(ua) && !/chrome|crios/i.test(ua);
+    document.getElementById('voice-note').textContent = isSafari
+      ? 'Tip: on iPhone or Mac you can add even smoother voices in Settings → Accessibility → Spoken Content → Voices — new ones appear here automatically.'
+      : 'Tip: the Google voices are the smoothest in Chrome. They need an internet connection.';
   }
 
   function selectVoice(v) {
@@ -512,16 +553,52 @@
 
   function previewVoice(v) {
     speechSynthesis.cancel();
-    isPlaying = false;
-    setStatus('idle');
+    if (isPlaying) { isPlaying = false; setStatus('idle'); }
     const u = new SpeechSynthesisUtterance(PREVIEW_LINE);
     u.voice = v;
-    u.rate = parseFloat(document.getElementById('speed').value);
+    u.rate = rate;
     speechSynthesis.speak(u);
   }
 
   speechSynthesis.onvoiceschanged = loadVoices;
   loadVoices();
+  /* Safari sometimes never fires onvoiceschanged — poll briefly as a fallback */
+  let voicePolls = 0;
+  const voicePoller = setInterval(() => {
+    if (rankedVoices.length || ++voicePolls > 10) { clearInterval(voicePoller); return; }
+    loadVoices();
+  }, 400);
+
+  /* ---- speed chips ---- */
+  document.getElementById('speed-group').addEventListener('click', e => {
+    const chip = e.target.closest('.speed-chip');
+    if (!chip) return;
+    rate = parseFloat(chip.dataset.rate);
+    document.querySelectorAll('.speed-chip').forEach(c => c.classList.toggle('selected', c === chip));
+    if (isPlaying) { const idx = currentIdx; speechSynthesis.cancel(); speakFrom(idx); }
+  });
+
+  /* ---- timeline ---- */
+  timeline.addEventListener('input', () => {
+    scrubbing = true;
+    updateTimelineFill();
+    const frac = timeline.value / 100;
+    const total = totalMinutes() / rate;
+    document.getElementById('tl-elapsed').textContent = fmtMins(Math.round(total * frac)) + ' in';
+    document.getElementById('tl-remaining').textContent = fmtMins(Math.round(total * (1 - frac))) + ' left';
+  });
+
+  timeline.addEventListener('change', () => {
+    scrubbing = false;
+    const was = isPlaying;
+    speechSynthesis.cancel();
+    currentIdx = Math.min(sentences.length - 1, Math.max(0, Math.floor((timeline.value / 100) * sentences.length)));
+    if (was) { isPlaying = true; speakFrom(currentIdx); } else updateProgress();
+  });
+
+  function updateTimelineFill() {
+    timeline.style.setProperty('--fill', timeline.value + '%');
+  }
 
   /* ---- file handling ---- */
   async function handleFile(file) {
@@ -558,15 +635,19 @@
     document.getElementById('book-pages').textContent =
       `${pages} page${pages > 1 ? 's' : ''} · about ${estimateTime()} at 1×`;
     document.getElementById('preview-text').textContent =
-      clean.slice(0, 1400) + (clean.length > 1400 ? '…' : '');
+      clean.slice(0, 1200) + (clean.length > 1200 ? '…' : '');
     showLoading(false);
     document.getElementById('reader').style.display = 'block';
     updateProgress();
   }
 
-  function estimateTime() {
+  function totalMinutes() {
     const words = sentences.join(' ').split(/\s+/).length;
-    const mins = Math.round(words / 160);
+    return Math.max(1, Math.round(words / 160));
+  }
+
+  function estimateTime() {
+    const mins = totalMinutes();
     if (mins < 60) return `${mins} min`;
     return `${Math.floor(mins / 60)}h ${mins % 60}m`;
   }
@@ -580,54 +661,64 @@
   /* ---- playback ---- */
   function setStatus(state) {
     const txt = document.getElementById('status-txt');
-    const label = document.getElementById('play-label');
-    if (state === 'playing') { txt.textContent = 'reading to you…'; label.textContent = 'Pause'; }
-    else if (state === 'paused') { txt.textContent = 'paused — pick up any time'; label.textContent = 'Resume'; }
-    else { txt.textContent = 'ready when you are'; label.textContent = 'Play'; }
+    const btn = document.getElementById('play-btn');
+    btn.classList.toggle('playing', state === 'playing');
+    if (state === 'playing') txt.textContent = 'reading to you…';
+    else if (state === 'paused') txt.textContent = 'paused — pick up any time';
+    else txt.textContent = 'ready when you are';
+  }
+
+  function fmtMins(mins) {
+    if (mins < 1) return 'under a minute';
+    if (mins < 60) return `${mins} min`;
+    return `${Math.floor(mins / 60)}h ${mins % 60}m`;
   }
 
   function updateProgress() {
-    const pct = sentences.length ? Math.round((currentIdx / sentences.length) * 100) : 0;
-    document.getElementById('prog-fill').style.width = pct + '%';
-    document.getElementById('prog-label').textContent = `${pct}% read`;
+    const frac = sentences.length ? currentIdx / sentences.length : 0;
+    if (!scrubbing) {
+      timeline.value = Math.round(frac * 100);
+      updateTimelineFill();
+    }
+    const total = totalMinutes() / rate;
+    const elapsed = Math.round(total * frac);
+    const left = Math.round(total * (1 - frac));
+    document.getElementById('tl-elapsed').textContent = fmtMins(elapsed) + ' in';
+    document.getElementById('tl-remaining').textContent = fmtMins(left) + ' left';
   }
 
-  document.getElementById('prog-bar').addEventListener('click', e => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const frac = (e.clientX - rect.left) / rect.width;
-    const was = isPlaying;
-    speechSynthesis.cancel();
-    currentIdx = Math.min(sentences.length - 1, Math.max(0, Math.floor(frac * sentences.length)));
-    if (was) { isPlaying = true; speakFrom(currentIdx); } else updateProgress();
-  });
-
+  /* One sentence per utterance:
+     - pause/resume works reliably in every browser (we cancel and remember
+       the exact sentence, since speechSynthesis.pause() is broken with
+       Chrome's Google voices)
+     - sidesteps Chrome's bug where long utterances stop after ~15s */
   function speakFrom(idx) {
     speechSynthesis.cancel();
-    if (idx >= sentences.length) { isPlaying = false; setStatus('idle'); return; }
+    if (idx >= sentences.length) { isPlaying = false; currentIdx = 0; setStatus('idle'); updateProgress(); return; }
     currentIdx = idx;
     updateProgress();
-    const chunk = sentences.slice(idx, idx + 5).join(' ');
-    const u = new SpeechSynthesisUtterance(chunk);
+    const u = new SpeechSynthesisUtterance(sentences[idx]);
     u.voice = selectedVoice;
-    u.rate = parseFloat(document.getElementById('speed').value);
+    u.rate = rate;
     u.onend = () => {
-      currentIdx = Math.min(idx + 5, sentences.length);
-      if (isPlaying) speakFrom(currentIdx);
+      if (!isPlaying) return;
+      speakFrom(idx + 1);
     };
-    u.onerror = () => { isPlaying = false; setStatus('idle'); };
+    u.onerror = (e) => {
+      if (e.error === 'interrupted' || e.error === 'canceled') return;
+      isPlaying = false;
+      setStatus('idle');
+    };
     speechSynthesis.speak(u);
     setStatus('playing');
   }
 
   function togglePlay() {
     if (isPlaying) {
-      speechSynthesis.pause();
+      /* cancel-based pause: remembers the current sentence exactly */
       isPlaying = false;
+      speechSynthesis.cancel();
       setStatus('paused');
-    } else if (speechSynthesis.paused) {
-      speechSynthesis.resume();
-      isPlaying = true;
-      setStatus('playing');
     } else {
       isPlaying = true;
       speakFrom(currentIdx);
@@ -648,11 +739,6 @@
     if (was) { isPlaying = true; speakFrom(currentIdx); } else updateProgress();
   }
 
-  function updateSpeed(v) {
-    document.getElementById('speed-out').textContent = parseFloat(v).toFixed(1) + '×';
-    if (isPlaying) { const idx = currentIdx; speechSynthesis.cancel(); speakFrom(idx); }
-  }
-
   function resetReader() {
     speechSynthesis.cancel();
     isPlaying = false;
@@ -666,5 +752,3 @@
 </script>
 </body>
 </html>
-
-
